@@ -20,6 +20,7 @@ const int GENERATIONS=0;			//how many breeding generations
 const int MAXCARS=1000;				//maximum # of cars.  more than this will segfault
 const int KILLMAX=20;				//kill all but this many cars
 const int INITIAL_POPULATION=30;	//how many cars we start with
+const int NUM_BALLS_IN_CAR = 10;
 
 int WIDTH=500,HEIGHT=500;			//screen width and height
 QGraphicsScene* thescene;			//window component
@@ -47,7 +48,7 @@ TimerHandler::TimerHandler(int t)
 //when a timer goes off, ready to show a frame
 //this only happens where we're ready to see the winning cars
 void TimerHandler::onTimer()
-{
+{	//only shows the winner
 	if(!simulating) return;
 
 	doFrame();
@@ -56,8 +57,9 @@ void TimerHandler::onTimer()
 
 	iterations++;
 
-	if(iterations>=2000 || pos>=WIDTH)
+	if(iterations>=SIMULATION_LENGTH || pos>=WIDTH)
 	{
+		//cut off a car at end of screen or timeout
 		qDebug() << iterations<<" iterations, position="<<pos<<endl;
 		car[currentCar]->score(iterations,pos);
 		car[currentCar]->deconstructCar();
@@ -65,6 +67,7 @@ void TimerHandler::onTimer()
 		currentCar++;
 		if(currentCar>=CarCount)
 		{
+			// if all complete, stop racing
 			simulating=FALSE;
 			for (int i=0; i<CarCount; i++)
 			{
@@ -73,6 +76,7 @@ void TimerHandler::onTimer()
 		}
 		else
 		{
+			// if not all done, make next car
 			car[currentCar]->constructCar();
 		}
 		iterations=0;
@@ -198,29 +202,37 @@ void makeRaceCourse()
 
 int main(int argc, char **argv)
 {
+	//seed random generator
 	QApplication app(argc,argv);
 	qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
 
+	//make the window
 	thescene=new QGraphicsScene();
 	thescene->setSceneRect(0,0,WIDTH,HEIGHT);
 
+	//make the course
 	makeRaceCourse();
 
+	//make initial population
 	for (int i=0; i<CarCount; i++)
-		car[i]=new Car(10);
+		car[i]=new Car(NUM_BALLS_IN_CAR);
 
+	//race cars and breed cars
 	doCars();
 
+	//once all cars are bread, show all master cars graphically.
 	currentCar=0;
 	car[currentCar]->constructCar();
 	simulating=TRUE;
 
+	//make thw window
 	view=new WindowView(thescene);
 	view->setWindowTitle("Genetic Cars");
 	view->resize(WIDTH+50,HEIGHT+50);
 	view->show();
 	view->setMouseTracking(true);
 
+	//start the timer. 
 	TimerHandler timer(timeunit);
 
 	return app.exec();
