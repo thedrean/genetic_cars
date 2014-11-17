@@ -16,24 +16,25 @@
 #include "physicsengine.h"
 #include "car.h"
 
-const int GENERATIONS=0;		//how many breeding generations
-const int MAXCARS=1000;			//maximum # of cars.  more than this will segfault
-const int KILLMAX=20;			//kill all but this many cars
+const int GENERATIONS=0;			//how many breeding generations
+const int MAXCARS=1000;				//maximum # of cars.  more than this will segfault
+const int KILLMAX=20;				//kill all but this many cars
 const int INITIAL_POPULATION=30;	//how many cars we start with
 
-int WIDTH=500,HEIGHT=500;		//screen width and height
-QGraphicsScene* thescene;		//window component
-WindowView* view;			//window
-int timeunit=1000/660;			//when we're actually showing the car, do a frame every this many milliseconds
+int WIDTH=500,HEIGHT=500;			//screen width and height
+QGraphicsScene* thescene;			//window component
+WindowView* view;					//window
+int timeunit=1000/660;				//when we're actually showing the car, do a frame every this many milliseconds
+int SIMULATION_LENGTH = 2000; 		// frame count of simulation before we give up
 
-Car* car[MAXCARS];			//cars are stored here
+Car* car[MAXCARS];					//cars are stored here
 int CarCount=INITIAL_POPULATION;	//keeps track of how many valid cars there are
-int currentCar;				//which car we're currently racing
+int currentCar;						//which car we're currently racing
 
-int iterations;				//how many frames we have simulated so far
+int iterations;						//how many frames we have simulated so far
 
-extern bool simulating;			//TRUE if actively racing a car, FALSE during setup
-extern bool dontdographics;		//TRUE if no window is open, FALSE if we want to see the cars in the window
+extern bool simulating;				//TRUE if actively racing a car, FALSE during setup
+extern bool dontdographics;			//TRUE if no window is open, FALSE if we want to see the cars in the window
 
 //sets up a timer for visualization
 TimerHandler::TimerHandler(int t)
@@ -99,52 +100,74 @@ void WindowView::mouseDoubleClickEvent(QMouseEvent *event)
 }
 
 void kill()
-{
+{	// sort the cars by scoring mechinism and kill off all but the killmax best
+	// 1 car that gets the farthest wins, average ball position?
+	// 2 distance > end of track, lowest frame count
+
 }
 
 void breed()
-{
+{ 	// consider every pair of cars, give them a random possibility of breeding,
+	// if decide to breed, breed
+	// carr[i]-> breed(car[j]);
 }
 
 void mutate()
-{
+{	//consider every car,ranomd possibility of cloning
+	//mutate the clone
+	// car[i]->mutate();
+
 }
 
+//does all of the racing, breeding etc behind the scenes
+//when called, cars are random
+//when ended, super cars ahoy, ready to display winners
 void doCars()
 {
+	//no window, don't make visible, happen bts
 	dontdographics=TRUE;
 
+	// do it generations times. 
 	for(int gen=0; gen<GENERATIONS; gen++) {
 		qDebug() << "****** GENERATION "<<gen<<" **********" <<endl;
 
-	for (int i=0; i<CarCount; i++)
-	{
-		car[i]->constructCar();
 
-		simulating=TRUE;
-		int t=0;
-		int pos;
-		for(t=0; t<2000; t++)
+		for (int i=0; i<CarCount; i++)
 		{
-			doFrame();
-			pos=car[i]->getCarPosition();
-			if(pos>=WIDTH) break;
+			// race every car and get score
+
+			//put car into physics engine
+			car[i]->constructCar();
+
+			//run physics engine
+			simulating=TRUE;
+			int t=0;			//frame count
+			int pos;			//car score
+			for(t=0; t<SIMULATION_LENGTH; t++) //should probably adjust
+			{	//runs 2000 frames
+				//move everything 1 epsilon
+				doFrame();
+				pos=car[i]->getCarPosition();
+				if(pos>=WIDTH) break;
+			}
+
+			qDebug() << t<<" iterations, position="<<pos<<endl;
+			car[i]->score(t,pos);
+			simulating=FALSE;
+			car[i]->deconstructCar();
 		}
 
-		qDebug() << t<<" iterations, position="<<pos<<endl;
-		car[i]->score(t,pos);
-		simulating=FALSE;
-		car[i]->deconstructCar();
-	}
-	for (int i=0; i<CarCount; i++)
-	{
-		qDebug()<<"Car "<<i<<": itr: "<<car[i]->iterations<<", pos: "<<car[i]->position<<endl;
+		//debug loop
+		for (int i=0; i<CarCount; i++)
+		{
+			qDebug()<<"Car "<<i<<": itr: "<<car[i]->iterations<<", pos: "<<car[i]->position<<endl;
+		}
+
+		kill();
+		breed();
+		mutate();
 	}
 
-	kill();
-	breed();
-	mutate();
-}
 	kill();
 	dontdographics=FALSE;
 }
@@ -152,7 +175,11 @@ void doCars()
 extern Wall* walls[];
 extern int WallCount;
 void makeRaceCourse()
-{
+{	//racecourse 
+	// should be continuous
+	// must trend downhill
+	// ditches are bad
+
 	WallCount=9;
 
 	walls[0]=new Wall(1,500,499,500);
