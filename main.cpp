@@ -108,6 +108,10 @@ void kill()
 	// 1 car that gets the farthest wins, average ball position?
 	// 2 distance > end of track, lowest frame count
 
+	//DO THIS after implementation
+	// use the deconstructor to prevent memory buffer explosion and general bad stuff
+	// be careful of seg fault (delete something that is already deleted)
+	// delete car
 }
 
 void breed()
