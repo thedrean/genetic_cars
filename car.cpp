@@ -94,3 +94,7 @@ void Car::score(int itr, int pos)
 	iterations=itr;
 	position=pos;
 }
+int Car::GetScore()
+{
+	return position+(2000- iterations);
+}

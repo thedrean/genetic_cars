@@ -16,6 +16,7 @@ public:
 	void deconstructCar();
 	int getCarPosition();
 	void score(int,int);
+	int GetScore();
 	Car* breed(Car*);
 	Car* mutate();
 

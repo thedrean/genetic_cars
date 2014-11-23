@@ -16,17 +16,20 @@
 #include "physicsengine.h"
 #include "car.h"
 
-const int GENERATIONS=0;			//how many breeding generations
+const int GENERATIONS=30;			//how many breeding generations
 const int MAXCARS=1000;				//maximum # of cars.  more than this will segfault
 const int KILLMAX=20;				//kill all but this many cars
-const int INITIAL_POPULATION=30;	//how many cars we start with
+const int INITIAL_POPULATION=100;	//how many cars we start with
 const int NUM_BALLS_IN_CAR = 10;
-
+const int BREEDRATE=20;				//probability of breeding
+const int MUTATE_CHANCE=10;		//mutate chance 
+const int BALL_MUTATE_RATE=35;			//mutate intensity 
+const int LINK_MUTATE_RATE=15;
 int WIDTH=500,HEIGHT=500;			//screen width and height
 QGraphicsScene* thescene;			//window component
 WindowView* view;					//window
 int timeunit=1000/660;				//when we're actually showing the car, do a frame every this many milliseconds
-int SIMULATION_LENGTH = 2000; 		// frame count of simulation before we give up
+int SIMULATION_LENGTH = 2600; 		// frame count of simulation before we give up
 
 Car* car[MAXCARS];					//cars are stored here
 int CarCount=INITIAL_POPULATION;	//keeps track of how many valid cars there are
@@ -108,6 +111,21 @@ void kill()
 	// 1 car that gets the farthest wins, average ball position?
 	// 2 distance > end of track, lowest frame count
 
+	for(int i=0; i<CarCount;i++)
+	{
+		for(int k=0;k<CarCount-1;k++)
+		{
+			if(car[k+1]->GetScore()>car[k]->GetScore())
+			{
+				Car* temp = car[k+1];
+				car[k+1]=car[k];
+				car[k]=temp;
+			}
+		}
+	}
+	qDebug()<<"KILLED"<<endl;
+	CarCount=KILLMAX;
+
 	//DO THIS after implementation
 	// use the deconstructor to prevent memory buffer explosion and general bad stuff
 	// be careful of seg fault (delete something that is already deleted)
@@ -118,12 +136,99 @@ void breed()
 { 	// consider every pair of cars, give them a random possibility of breeding,
 	// if decide to breed, breed
 	// carr[i]-> breed(car[j]);
+	int breedingpop = CarCount;
+	for (int d = 0; d < breedingpop; d++)
+	{
+		for (int m = 0; m < breedingpop; m++)
+		{
+			if (m==d)
+				continue;
+			if (rand()%100<=BREEDRATE)
+			{
+				CarCount++;
+				car[CarCount] = new Car(NUM_BALLS_IN_CAR);
+				qDebug()<<"new child"<<endl;
+				int crosspoint = rand()%NUM_BALLS_IN_CAR;
+	//breeding balls
+				for (int i = 0; i < NUM_BALLS_IN_CAR; i++)
+				{
+					if(i<=crosspoint)
+					{
+						car[CarCount]->balls_x[i] = car[d]->balls_x[i];
+						car[CarCount]->balls_y[i] = car[d]->balls_y[i];
+					}
+					else
+					{
+						car[CarCount]->balls_x[i] = car[m]->balls_x[i];
+						car[CarCount]->balls_y[i] = car[m]->balls_y[i];
+					}
+				}
+	//breeding links
+	//TODO move to car.cpp
+				for (int i = 0; i < NUM_BALLS_IN_CAR; i++)
+					for (int j = 0; j < NUM_BALLS_IN_CAR; j++)
+					{
+						if(i<=j)
+							continue;
+						if(i<=crosspoint)
+						{
+							car[CarCount]->links[i][j] = car[d]->links[i][j];
+						}
+						else
+						{
+							car[CarCount]->links[i][j] = car[m]->links[i][j];
+						}
+
+
+					}
+
+
+			}
+		
+			
+
+		}
+	}
+	qDebug()<<"BREAD"<<endl;
 }
 
 void mutate()
 {	//consider every car,ranomd possibility of cloning
 	//mutate the clone
 	// car[i]->mutate();
+	int mutatepop = CarCount;
+	for (int i = 0; i < mutatepop; i++)
+	{
+
+		if(rand()%100<=MUTATE_CHANCE)
+		{
+
+			CarCount++;
+			car[CarCount] = new Car(NUM_BALLS_IN_CAR);
+			qDebug()<<"New Mutant"<<endl;
+			//mutate the ballz
+			for (int m = 0; m < NUM_BALLS_IN_CAR; m++)
+			{
+				if (rand()%100<=BALL_MUTATE_RATE)
+				{
+					car[CarCount]->balls_x[m]= rand()%45 + 5;
+					car[CarCount]->balls_y[m]= rand()%45 + 5;
+				}
+			}
+			for (int l = 0; l < NUM_BALLS_IN_CAR; l++)
+				for (int k = 0; k < NUM_BALLS_IN_CAR; k++)
+				{
+					if(l<=k)
+						continue;
+					if(rand()%100<=LINK_MUTATE_RATE)
+						if(car[CarCount]->links[l][k]==0)
+							car[CarCount]->links[l][k]=1;
+						else
+							car[CarCount]->links[l][k]=0;
+				}
+		}
+	}
+	qDebug()<<"MUTATED"<<endl;
 
 }
 
