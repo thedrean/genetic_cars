@@ -2,7 +2,7 @@
 #include "physicsengine.h"
 #include "ball.h"
 #include <QtGui>
-
+//hello
 int randint(int a, int b)
 {
 	return (qrand()%(b-a+1))+a;
@@ -74,8 +74,8 @@ void Car::deconstructCar()
 {
 	for(int i=0; i<numlinks; i++)
 		removeLink(linkslist[i]-i);
-	for(int i=0; i<nodes; i++)
-		removeBall(balls[i]-i);
+	for(int i=0; i<nodes; i++
+)		removeBall(balls[i]-i);
 
 	delete balls;
 	delete linkslist;

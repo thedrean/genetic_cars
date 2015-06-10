@@ -16,7 +16,7 @@
 #include "physicsengine.h"
 #include "car.h"
 
-const int GENERATIONS=15;			//how many breeding generations
+const int GENERATIONS=30;			//how many breeding generations
 const int MAXCARS=1000;				//maximum # of cars.  more than this will segfault
 const int KILLMAX=20;				//kill all but this many cars
 const int INITIAL_POPULATION=100;	//how many cars we start with
@@ -29,7 +29,7 @@ int WIDTH=500,HEIGHT=500;			//screen width and height
 QGraphicsScene* thescene;			//window component
 WindowView* view;					//window
 int timeunit=1000/660;				//when we're actually showing the car, do a frame every this many milliseconds
-int SIMULATION_LENGTH = 3000; 		// frame count of simulation before we give up
+int SIMULATION_LENGTH = 2600; 		// frame count of simulation before we give up
 
 Car* car[MAXCARS];					//cars are stored here
 int CarCount=INITIAL_POPULATION;	//keeps track of how many valid cars there are
